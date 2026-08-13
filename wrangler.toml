@@ -1,5 +1,5 @@
 # Nama project kamu
-name = "e-voting"
+name = "evoting-sistem"
 
 # Memberitahu Cloudflare letak folder tampilan web
 pages_build_output_dir = "public"
