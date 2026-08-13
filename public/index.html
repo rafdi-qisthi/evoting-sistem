@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuaraKita | Sistem Pemilihan Digital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #070709;
+            /* Hitam pekat mewah */
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #a3a3a3;
+            --text-muted: #6b6b6b;
+
+            /* Gradasi Emas Mewah */
+            --gold-light: #F9F0D2;
+            --gold-mid: #D4AF37;
+            --gold-dark: #997A15;
+            --gold-gradient: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-mid) 50%, var(--gold-dark) 100%);
+
+            /* Glassmorphism */
+            --glass-bg: rgba(255, 255, 255, 0.02);
+            --glass-border: rgba(212, 175, 55, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Efek Cahaya Latar Belakang (Subtle Glow) */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Fraunces', serif;
+        }
+
+        /* Utility Class untuk Teks Emas */
+        .text-gold {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 2px 10px rgba(212, 175, 55, 0.15);
+        }
+
+        /* NAVBAR */
+        .top-accent {
+            height: 2px;
+            background: var(--gold-gradient);
+            flex-shrink: 0;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 6%;
+            border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+            background: rgba(7, 7, 9, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 600;
+            font-family: 'Fraunces', serif;
+            letter-spacing: 0.8px;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            transform: rotate(45deg);
+            background: var(--gold-mid);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+            flex-shrink: 0;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--gold-mid);
+        }
+
+        .btn-login {
+            background: transparent;
+            color: var(--gold-mid);
+            padding: 10px 24px;
+            border: 1px solid var(--gold-mid);
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background: var(--gold-gradient);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+            border-color: transparent;
+        }
+
+        /* HERO */
+        .hero {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            padding: 20px 6%;
+            max-width: 1300px;
+            margin: 0 auto;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .hero-left {
+            flex: 1.2;
+            min-width: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold-mid);
+            border: 1px solid var(--glass-border);
+            padding: 8px 18px;
+            border-radius: 30px;
+            margin-bottom: 24px;
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .hero-left h1 {
+            font-size: 46px;
+            font-weight: 300;
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+            margin-bottom: 20px;
+        }
+
+        .accent-italic {
+            font-style: italic;
+            font-weight: 600;
+        }
+
+        .hero-left .lead {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            font-weight: 300;
+            max-width: 580px;
+            margin-bottom: 40px;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 18px;
+            align-items: flex-start;
+        }
+
+        .feature-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            color: var(--gold-mid);
+        }
+
+        .feature-item h3 {
+            font-size: 16px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .feature-item p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-muted);
+            font-weight: 300;
+            max-width: 420px;
+        }
+
+        /* CTA CARD KANAN (GLASSMORPHISM) */
+        .hero-right {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .cta-card-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Efek cahaya di belakang kartu */
+        .cta-card-wrap::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            background: var(--gold-mid);
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: -1;
+        }
+
+        .cta-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 40px 35px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .cta-card h2 {
+            font-size: 24px;
+            font-weight: 400;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .cta-card p {
+            font-size: 14px;
+            line-height: 1.7;
+            font-weight: 300;
+            color: var(--text-secondary);
+            margin-bottom: 35px;
+        }
+
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            background: var(--gold-gradient);
+            color: #000000;
+            padding: 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cta:hover {
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-cta .arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-cta:hover .arrow {
+            transform: translateX(4px);
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+            background: rgba(7, 7, 9, 0.8);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 860px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                gap: 30px;
+                padding: 20px 6%;
+                justify-content: center;
+                overflow-y: auto;
+            }
+
+            .hero-left .lead {
+                margin-left: auto;
+                margin-right: auto;
+                font-size: 13px;
+                margin-bottom: 25px;
+            }
+
+            .feature-item {
+                text-align: left;
+            }
+
+            .hero-left h1 {
+                font-size: 32px;
+                margin-bottom: 15px;
+            }
+
+            .badge {
+                margin-bottom: 15px;
+            }
+
+            .cta-card {
+                padding: 30px 20px;
+            }
+
+            .nav-right {
+                gap: 15px;
+            }
+
+            .nav-link {
+                display: none;
+            }
+        }
+
+        @media (max-height: 750px) {
+            .feature-list {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-accent"></div>
+
+    <nav class="navbar">
+        <div class="logo"><span class="logo-dot"></span> SuaraKita</div>
+        <div class="nav-right">
+            <a href="#tentang" class="nav-link">Tentang Sistem</a>
+            <!-- Teks tombol diubah menjadi 'Login' saja -->
+            <a href="/login.html" class="btn-login">Login</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-left">
+            <span class="badge">Sistem Pemilihan Eksklusif v1.0</span>
+            <h1>Pemilihan Digital<br><span class="accent-italic text-gold">Aman &amp; Tepercaya</span></h1>
+            <p class="lead">
+                Platform e-voting berteknologi tinggi yang memastikan setiap suara Anda tercatat secara akurat, rahasia,
+                dan tidak dapat dimanipulasi.
+            </p>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon">🛡️</div>
+                    <div>
+                        <h3>Verifikasi Kredensial Terjamin</h3>
+                        <p>Otentikasi berlapis memastikan identitas setiap pemilih tervalidasi sebelum memberikan hak
+                            suara.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📈</div>
+                    <div>
+                        <h3>Rekapitulasi Instan &amp; Transparan</h3>
+                        <p>Penghitungan dilakukan secara <i>real-time</i> oleh sistem, bebas dari intervensi manual.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-right">
+            <div class="cta-card-wrap">
+                <div class="cta-card">
+                    <h2>Siap Memberi Suara?</h2>
+                    <p>Gunakan kredensial resmi yang telah diberikan oleh panitia untuk mengakses bilik suara digital
+                        Anda.</p>
+                    <a href="/login.html" class="btn-cta">Masuk E-Voting <span class="arrow">→</span></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>&copy; 2026 SuaraKita — Hak Cipta Dilindungi</footer>
+
+</body>
+
+</html>

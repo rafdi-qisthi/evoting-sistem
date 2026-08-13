@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Voting | Kelola Paslon</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <style>
+        .table-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-edit {
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--gold-mid);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-edit:hover {
+            background: rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-delete {
+            background: rgba(220, 53, 69, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-delete:hover {
+            background: rgba(220, 53, 69, 0.2);
+        }
+
+        .edit-row td {
+            padding: 0;
+            border-bottom: none;
+        }
+
+        .edit-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-left: 4px solid var(--gold-mid);
+            padding: 25px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .edit-title {
+            margin-bottom: 15px;
+            color: var(--gold-mid);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .edit-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            background: var(--input-bg);
+            color: white;
+            padding: 10px 12px;
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--gold-mid);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-batal {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-batal:hover {
+            color: white;
+            border-color: white;
+        }
+
+        .btn-simpan {
+            background: var(--gold-gradient);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-simpan:hover {
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="topbar-logo"><span>🛡️</span> E-Voting Panel</div>
+        <button class="btn-outline" onclick="logoutAdmin()">🚪 Keluar</button>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="header-left">
+                <a href="/admin.html"
+                    style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500;">←
+                    Kembali ke Dashboard</a>
+                <h1 style="margin-top: 10px;"><span>👥</span> Kelola Pasangan Calon</h1>
+                <p>Tambah kandidat manual atau import sekaligus menggunakan Excel (.csv)</p>
+            </div>
+            <div class="action-group">
+                <button class="btn-primary" id="btnTambah" onclick="tambahPaslon()">+ Tambah Manual</button>
+                <button class="btn-export" id="btnTemplate" onclick="downloadTemplatePaslon()"
+                    title="Unduh Format Kosong">📄 Template</button>
+                <button class="btn-export" id="btnImport" onclick="document.getElementById('importPaslon').click()"
+                    title="Unggah CSV">📤 Import</button>
+                <input type="file" id="importPaslon" accept=".csv" style="display:none;"
+                    onchange="prosesImportPaslon(event)">
+                <button class="btn-export" id="btnExport" onclick="exportPaslon()" title="Unduh Data">💾 Export</button>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <table id="tabelDataPaslon">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID / No</th>
+                        <th style="width: 280px;">Pasangan Calon (Ketua & Wakil)</th>
+                        <th>Visi & Misi</th>
+                        <th style="width: 150px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelPaslon">
+                    <tr>
+                        <td colspan="4" style="text-align: center;">Memuat data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/js/global.js"></script>
+    <script>
+        const adminAktif = sessionStorage.getItem("activeUser");
+        const role = sessionStorage.getItem("userRole");
+        if (!adminAktif || (role !== 'admin' && role !== 'demo')) { window.location.href = "/"; }
+        function logoutAdmin() { sessionStorage.clear(); window.location.href = "/"; }
+
+        let listPaslon = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Ubah tampilan tombol menjadi bergembok dan tidak bisa diklik jika role adalah demo
+            if (role === 'demo') {
+                const buttons = [
+                    { id: 'btnTambah', text: '🔒 Tambah Manual' },
+                    { id: 'btnTemplate', text: '🔒 Template' },
+                    { id: 'btnImport', text: '🔒 Import' },
+                    { id: 'btnExport', text: '🔒 Export' }
+                ];
+
+                buttons.forEach(b => {
+                    const btn = document.getElementById(b.id);
+                    if (btn) {
+                        btn.innerHTML = b.text;
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                        btn.style.pointerEvents = 'none'; // Mematikan fungsi klik/hover
+                        btn.title = 'Fitur dikunci pada mode Demo';
+                    }
+                });
+            }
+            loadDataPaslon();
+        });
+
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        function downloadTemplatePaslon() {
+            let csv = "nama_ketua,nama_wakil,visi_misi\n";
+            csv += "\"Budi Santoso\",\"Andi Darmawan\",\"Visi Misi Singkat 1\"\n";
+            csv += "\"Siti Aminah\",\"Rina Melati\",\"Visi Misi Singkat 2\"\n";
+            downloadCSV(csv, "Template_Import_Paslon.csv");
+        }
+
+        function exportPaslon() {
+            if (listPaslon.length === 0) return showCustomModal("Belum ada data untuk diexport!", "alert");
+            let csv = "ID,Nama Ketua,Nama Wakil,Visi Misi,Total Suara\n";
+            listPaslon.forEach(p => {
+                let names = p.nama.split(" & ");
+                let ketua = names[0] || p.nama;
+                let wakil = names[1] || "";
+                let visiBersih = p.visi_misi.replace(/(\r\n|\n|\r)/gm, " ").replace(/"/g, '""');
+                csv += `"${p.id}","${ketua}","${wakil}","${visiBersih}","${p.total_suara}"\n`;
+            });
+            downloadCSV(csv, "Data_Export_Paslon.csv");
+        }
+
+        function parseCSVLine(line) {
+            let match = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            return match.map(val => val.replace(/(^"|"$)/g, '').trim());
+        }
+
+        function prosesImportPaslon(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                const text = e.target.result; const rows = text.split('\n').filter(row => row.trim().length > 0);
+                const dataToImport = [];
+                for (let i = 1; i < rows.length; i++) {
+                    const cols = parseCSVLine(rows[i]);
+                    if (cols.length >= 3 && cols[0] !== "") {
+                        dataToImport.push({ nama: cols[0] + " & " + cols[1], visi_misi: cols[2] });
+                    }
+                }
+                if (dataToImport.length === 0) { event.target.value = ''; return showCustomModal("File CSV kosong atau format salah! Pastikan ada 3 kolom (Ketua, Wakil, Visi).", "alert"); }
+                try {
+                    const response = await fetch('/api/paslon', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToImport) });
+                    if (response.ok) { await showCustomModal(`Berhasil mengimpor ${dataToImport.length} pasangan calon!`, "success"); loadDataPaslon(); }
+                    else { await showCustomModal("Gagal mengimpor data paslon.", "alert"); }
+                } catch (err) { await showCustomModal("Terjadi kesalahan koneksi.", "alert"); }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        async function loadDataPaslon() {
+            const tbody = document.getElementById('tabelPaslon');
+            try { const response = await fetch('/api/paslon'); listPaslon = await response.json(); renderTabel(); }
+            catch (error) { tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #ff6b6b;">Gagal terhubung ke server!</td></tr>'; }
+        }
+
+        function renderTabel() {
+            const tbody = document.getElementById('tabelPaslon'); tbody.innerHTML = '';
+            if (listPaslon.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Belum ada data paslon.</td></tr>'; return; }
+            listPaslon.forEach(paslon => {
+                const tr = document.createElement('tr'); tr.className = 'normal-row'; tr.id = `row-${paslon.id}`;
+
+                let aksiHTML = '';
+                if (role === 'admin') {
+                    aksiHTML = `<div class="table-btns"><button class="btn-sm btn-edit" onclick="bukaFormEdit(${paslon.id})">✏️ Edit</button><button class="btn-sm btn-delete" onclick="hapusPaslon(${paslon.id}, '${paslon.nama}')">🗑️ Hapus</button></div>`;
+                } else {
+                    aksiHTML = `<span style="font-size: 12px; color: var(--text-muted);">🔒 Dikunci</span>`;
+                }
+
+                tr.innerHTML = `<td><strong style="color: var(--gold-mid);">${paslon.id}</strong></td><td><strong style="color: white;">${paslon.nama}</strong></td><td style="color: var(--text-secondary);">${paslon.visi_misi}</td><td>${aksiHTML}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function batalEdit() { const formAktif = document.querySelector('.active-edit'); if (formAktif) formAktif.remove(); }
+
+        function bukaFormEdit(id) {
+            batalEdit(); const paslon = listPaslon.find(p => p.id === id); const rowAsli = document.getElementById(`row-${id}`);
+            const names = paslon.nama.split(" & ");
+            const namaKetua = names[0] || paslon.nama;
+            const namaWakil = names[1] || "";
+
+            const formRow = document.createElement('tr'); formRow.className = 'edit-row active-edit';
+            formRow.innerHTML = `<td colspan="4"><div class="edit-box"><div class="edit-title">✏️ Mengedit Paslon: <span style="color:white; margin-left:5px;">Nomor ${paslon.id}</span></div>
+            <div class="edit-grid" style="grid-template-columns: 1fr 1fr 2fr;">
+                <div class="form-group"><label>Nama Calon Ketua</label><input type="text" id="edit-ketua" value="${namaKetua}" autocomplete="off"></div>
+                <div class="form-group"><label>Nama Calon Wakil</label><input type="text" id="edit-wakil" value="${namaWakil}" autocomplete="off"></div>
+                <div class="form-group"><label>Visi & Misi</label><textarea id="edit-visi">${paslon.visi_misi}</textarea></div>
+                <div class="edit-actions" style="grid-column: span 3;"><button class="btn-batal" onclick="batalEdit()">Batal</button><button class="btn-simpan" onclick="simpanEdit(${id})">Simpan Perubahan</button></div>
+            </div></div></td>`;
+            rowAsli.insertAdjacentElement('afterend', formRow);
+        }
+
+        async function simpanEdit(id) {
+            const ketua = document.getElementById('edit-ketua').value.trim();
+            const wakil = document.getElementById('edit-wakil').value.trim();
+            const visiBaru = document.getElementById('edit-visi').value.trim();
+            if (!ketua || !wakil || !visiBaru) { await showCustomModal("Nama Ketua, Wakil, dan Visi Misi tidak boleh kosong!", "alert"); return; }
+            const namaBaru = ketua + " & " + wakil;
+
+            try {
+                const response = await fetch('/api/paslon', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, nama: namaBaru, visi_misi: visiBaru }) });
+                if (response.ok) { await showCustomModal("Data pasangan calon berhasil diperbarui.", "success"); loadDataPaslon(); } else { await showCustomModal("Gagal memperbarui data.", "alert"); }
+            } catch (error) { await showCustomModal("Kesalahan koneksi.", "alert"); }
+        }
+
+        function tambahPaslon() {
+            batalEdit(); const tbody = document.getElementById('tabelPaslon'); const formRow = document.createElement('tr'); formRow.className = 'edit-row active-edit';
+            formRow.innerHTML = `<td colspan="4"><div class="edit-box"><div class="edit-title">✨ Menambah Pasangan Calon Baru</div>
+            <div class="edit-grid" style="grid-template-columns: 1fr 1fr 2fr;">
+                <div class="form-group"><label>Nama Calon Ketua</label><input type="text" id="add-ketua" placeholder="Ketik nama ketua..." autocomplete="off"></div>
+                <div class="form-group"><label>Nama Calon Wakil</label><input type="text" id="add-wakil" placeholder="Ketik nama wakil..." autocomplete="off"></div>
+                <div class="form-group"><label>Visi & Misi</label><textarea id="add-visi" placeholder="Tuliskan visi misi singkat..."></textarea></div>
+                <div class="edit-actions" style="grid-column: span 3;"><button class="btn-batal" onclick="batalEdit()">Batal</button><button class="btn-simpan" onclick="simpanTambah()">Simpan Paslon</button></div>
+            </div></div></td>`;
+            tbody.insertBefore(formRow, tbody.firstChild);
+        }
+
+        async function simpanTambah() {
+            const ketua = document.getElementById('add-ketua').value.trim();
+            const wakil = document.getElementById('add-wakil').value.trim();
+            const visi = document.getElementById('add-visi').value.trim();
+            if (!ketua || !wakil || !visi) { await showCustomModal("Semua form wajib diisi!", "alert"); return; }
+            const nama = ketua + " & " + wakil;
+
+            try {
+                const response = await fetch('/api/paslon', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nama: nama, visi_misi: visi }) });
+                if (response.ok) { await showCustomModal("Pasangan Calon berhasil ditambahkan.", "success"); loadDataPaslon(); } else { await showCustomModal("Gagal menyimpan paslon.", "alert"); }
+            } catch (error) { await showCustomModal("Kesalahan koneksi.", "alert"); }
+        }
+
+        async function hapusPaslon(id, nama) {
+            const konfirmasi = await showCustomModal(`PERINGATAN KRUSIAL!\n\nMenghapus paslon "${nama}" akan menghilangkan perolehan suara yang sudah didapatnya secara permanen.\n\nYakin ingin menghapus?`, "confirm");
+            if (konfirmasi) {
+                try {
+                    const response = await fetch(`/api/paslon?id=${id}`, { method: 'DELETE' });
+                    if (response.ok) { await showCustomModal("Paslon berhasil dihapus.", "success"); loadDataPaslon(); } else { await showCustomModal("Gagal menghapus data.", "alert"); }
+                } catch (error) { await showCustomModal("Kesalahan koneksi.", "alert"); }
+            }
+        }
+    </script>
+</body>
+
+</html>

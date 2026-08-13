@@ -1,0 +1,14 @@
+# Nama project kamu
+name = "e-voting"
+
+# Memberitahu Cloudflare letak folder tampilan web
+pages_build_output_dir = "public"
+
+# Aturan standar Cloudflare
+compatibility_date = "2024-03-01"
+
+# PENGATURAN DATABASE D1
+[[d1_databases]]
+binding = "DB"
+database_name = "evoting-db"
+database_id = "ISI_DENGAN_ID_DARI_CLOUDFLARE"

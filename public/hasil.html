@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Voting | Pantau Hasil</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <style>
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-right: 1px solid var(--border-subtle);
+            padding-right: 20px;
+        }
+
+        .status-dropdown {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23D4AF37" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            padding-right: 35px;
+        }
+
+        .status-dropdown:focus {
+            border-color: var(--gold-mid);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+        }
+
+        .status-dropdown.tutup {
+            color: #ff6b6b;
+            border-color: rgba(220, 53, 69, 0.4);
+        }
+
+        .status-dropdown.buka {
+            color: #4ade80;
+            border-color: rgba(40, 167, 69, 0.4);
+        }
+
+        .status-dropdown option {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="topbar-logo"><span>🛡️</span> E-Voting Panel</div>
+        <button class="btn-outline" onclick="logoutAdmin()">🚪 Keluar</button>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="header-left">
+                <a href="/admin.html"
+                    style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500;">←
+                    Kembali ke Dashboard</a>
+                <h1 style="margin-top: 10px;"><span>📊</span> Riwayat & Hasil Pemilihan</h1>
+                <p>Pantau rekapitulasi perolehan suara secara real-time.</p>
+            </div>
+            <div class="action-group">
+                <div class="status-container">
+                    Status Publikasi:
+                    <select id="dropdownStatus" class="status-dropdown tutup" onchange="ubahStatusPublikasi(this)">
+                        <option value="0">🔒 DISEMBUNYIKAN (Pemilihan Berlangsung)</option>
+                        <option value="1">✅ DIPUBLIKASIKAN (Pemilihan Ditutup)</option>
+                    </select>
+                </div>
+                <button class="btn-export" id="btnExport" onclick="exportExcelHasil()">📥 Export Laporan</button>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <table id="tabelDataHasil">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Peringkat</th>
+                        <th style="width: 350px;">Pasangan Calon (Ketua & Wakil)</th>
+                        <th>Perolehan Suara & Grafik Persentase</th>
+                        <th style="width: 150px; text-align: center;">Total Suara</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelHasil">
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--text-secondary);">Menghitung suara dari
+                            database...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="table-footer">
+                <span>Di-refresh secara real-time dari Database</span>
+                <span style="font-weight: 600; color: var(--gold-light);" id="totalSuaraText">Total Suara Masuk:
+                    0</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/global.js"></script>
+    <script>
+        const adminAktif = sessionStorage.getItem("activeUser");
+        const role = sessionStorage.getItem("userRole");
+        if (!adminAktif || (role !== 'admin' && role !== 'demo')) { window.location.href = "/"; }
+        function logoutAdmin() { sessionStorage.clear(); window.location.href = "/"; }
+
+        let hasilDataGlobal = [];
+        const dropdownStatus = document.getElementById('dropdownStatus');
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (role === 'demo') {
+                dropdownStatus.disabled = true;
+                dropdownStatus.style.opacity = '0.5';
+                dropdownStatus.style.cursor = 'not-allowed';
+                dropdownStatus.title = 'Akun Demo tidak bisa mengubah status publikasi';
+
+                // Ubah tampilan tombol Export menjadi bergembok
+                const btnExport = document.getElementById('btnExport');
+                if (btnExport) {
+                    btnExport.innerHTML = '🔒 Export Laporan';
+                    btnExport.disabled = true;
+                    btnExport.style.opacity = '0.5';
+                    btnExport.style.cursor = 'not-allowed';
+                    btnExport.style.pointerEvents = 'none'; // Mematikan hover dan klik
+                    btnExport.title = 'Fitur dikunci pada mode Demo';
+                }
+            }
+            loadDataHasil();
+        });
+
+        async function loadDataHasil() {
+            const tbody = document.getElementById('tabelHasil');
+            try {
+                const response = await fetch('/api/hasil'); const data = await response.json();
+                dropdownStatus.value = data.is_published; warnaiDropdown(data.is_published);
+                hasilDataGlobal = data.kandidat; document.getElementById('totalSuaraText').innerText = `Total Suara Masuk: ${data.total_keseluruhan}`; tbody.innerHTML = '';
+                if (data.kandidat.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Belum ada data paslon.</td></tr>'; return; }
+
+                data.kandidat.forEach((kandidat, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong style="color: var(--gold-mid); font-size: 18px;">${index + 1}</strong></td>
+                        <td><strong style="font-size: 18px;">${kandidat.nama}</strong></td>
+                        <td>
+                            <div style="font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; font-size: 13px;">${kandidat.persentase}% dari total suara</div>
+                            <div class="progress-wrapper"><div class="progress-fill" style="width: ${kandidat.persentase}%;"></div></div>
+                        </td>
+                        <td style="text-align: center;"><span style="font-size: 24px; font-weight: bold; color: var(--gold-mid);">${kandidat.total_suara}</span> <span style="font-size: 12px; color: var(--text-secondary);">Suara</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) { tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #ff6b6b;">Gagal memuat hasil.</td></tr>'; }
+        }
+
+        async function ubahStatusPublikasi(selectElement) {
+            const statusBaru = selectElement.value;
+            let pesanKonfirmasi = statusBaru === '1' ? "PERINGATAN!\n\nAnda akan MENUTUP pemilihan dan MEMPUBLIKASIKAN hasil ke warga.\nWarga tidak akan bisa mencoblos lagi.\n\nLanjutkan?" : "Anda akan MENYEMBUNYIKAN hasil dan MEMBUKA KEMBALI bilik suara.\n\nLanjutkan?";
+            const isConfirmed = await showCustomModal(pesanKonfirmasi, "confirm");
+            if (!isConfirmed) { selectElement.value = statusBaru === '1' ? '0' : '1'; return; }
+            try {
+                const response = await fetch('/api/hasil', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ publikasi: statusBaru }) });
+                if (response.ok) { warnaiDropdown(statusBaru); if (statusBaru === '1') { await showCustomModal("Pemilihan telah ditutup. Hasil resmi dipublikasikan.", "success"); } else { await showCustomModal("Bilik suara dibuka kembali. Hasil disembunyikan.", "success"); } }
+                else { await showCustomModal("Gagal mengubah status di database!", "alert"); selectElement.value = statusBaru === '1' ? '0' : '1'; }
+            } catch (e) { await showCustomModal("Gagal koneksi ke server!", "alert"); selectElement.value = statusBaru === '1' ? '0' : '1'; }
+        }
+
+        function warnaiDropdown(status) {
+            if (status === '1') { dropdownStatus.classList.remove('tutup'); dropdownStatus.classList.add('buka'); } else { dropdownStatus.classList.remove('buka'); dropdownStatus.classList.add('tutup'); }
+        }
+
+        async function exportExcelHasil() {
+            if (hasilDataGlobal.length === 0) { await showCustomModal("Belum ada data untuk diexport!", "alert"); return; }
+            let csvContent = "Peringkat,Pasangan Calon,Persentase,Total Suara\n";
+            hasilDataGlobal.forEach((kandidat, index) => { csvContent += `"${index + 1}","${kandidat.nama}","${kandidat.persentase}%","${kandidat.total_suara}"\n`; });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Laporan_Hasil_EVoting.csv";
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Voting | Daftar Kandidat</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/css/global.css">
+    <style>
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 40px;
+            width: 100%;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .header h3 {
+            margin: 0;
+            color: var(--gold-mid);
+            font-family: 'Fraunces', serif;
+        }
+
+        .header span {
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .btn-logout {
+            background-color: transparent;
+            color: #ff6b6b;
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .btn-logout:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+
+        .kandidat-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .kandidat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 35px 25px;
+            border-radius: 16px;
+            width: 340px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .kandidat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--gold-mid);
+        }
+
+        .kandidat-foto {
+            width: 80px;
+            height: 80px;
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            color: var(--gold-mid);
+            box-shadow: inset 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+
+        .kandidat-nama {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-family: 'Fraunces', serif;
+            color: var(--gold-mid);
+        }
+
+        .kandidat-visi {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+            min-height: 80px;
+            font-weight: 300;
+        }
+
+        .btn-pilih {
+            background: var(--gold-gradient);
+            color: #000;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+            letter-spacing: 1px;
+        }
+
+        .btn-pilih:hover {
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-pilih:disabled {
+            background: #444;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h3>Bilik Suara <span style="margin: 0 10px;">|</span> <span>Halo, <span id="tampilPIN"></span></span></h3>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="btnBackAdmin" class="btn-outline" style="display: none;"
+                onclick="window.location.href='/admin.html'">⚙️ Panel Admin</button>
+            <button class="btn-logout" onclick="logout()">Keluar</button>
+        </div>
+    </div>
+
+    <div class="page-header"
+        style="justify-content: center; border: none; margin-bottom: 40px; flex-direction: column; align-items: center; text-align: center;">
+        <h2 style="font-family: 'Fraunces', serif; font-size: 32px; margin: 0 0 10px 0;">Daftar Pasangan Calon</h2>
+        <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Pilih salah satu kandidat terbaik menurut
+            Anda. Suara Anda bersifat rahasia dan dienkripsi.</p>
+    </div>
+
+    <!-- DIBUAT KOSONG KARENA AKAN DIISI OTOMATIS OLEH JAVASCRIPT -->
+    <div class="kandidat-container" id="kandidatContainer">
+        <p style="color: var(--text-secondary);">Memuat data pasangan calon dari database...</p>
+    </div>
+
+    <script src="/js/global.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const activeUser = sessionStorage.getItem("activeUser");
+            const userRole = sessionStorage.getItem("userRole");
+
+            if (!activeUser) {
+                await showCustomModal("Silakan login terlebih dahulu.", "alert");
+                window.location.href = "/login.html";
+            } else {
+                document.getElementById('tampilPIN').innerText = activeUser;
+                if (userRole === 'admin' || userRole === 'demo') {
+                    document.getElementById('btnBackAdmin').style.display = 'inline-block';
+                }
+
+                // Minta data dari database saat halaman dimuat
+                loadDataPaslon();
+            }
+        });
+
+        // FUNGSI BARU: MENGAMBIL DATA DARI DATABASE (API)
+        async function loadDataPaslon() {
+            const container = document.getElementById('kandidatContainer');
+            try {
+                const response = await fetch('/api/paslon');
+                const kandidatData = await response.json();
+                container.innerHTML = '';
+
+                if (kandidatData.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-secondary);">Belum ada data pasangan calon yang ditambahkan oleh Panitia.</p>';
+                    return;
+                }
+
+                // Render setiap kandidat ke dalam bentuk kartu HTML
+                kandidatData.forEach((paslon) => {
+                    const names = paslon.nama.split(" & ");
+                    const ketua = names[0] || paslon.nama;
+                    const wakil = names[1] || "";
+
+                    let avatarHtml = '<div class="kandidat-foto">👤</div>';
+                    let namaHtml = `${ketua}`;
+
+                    // Jika ada wakil, tambahkan ikon avatar ke-2 dan nama wakilnya
+                    if (wakil !== "") {
+                        avatarHtml = `<div class="kandidat-foto">👤</div><div class="kandidat-foto">👤</div>`;
+                        namaHtml = `${ketua}<br><span style="font-size: 16px; color: var(--text-primary); font-weight: 400; font-family: 'Inter', sans-serif;">&amp; ${wakil}</span>`;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'kandidat-card';
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+                            ${avatarHtml}
+                        </div>
+                        <div class="kandidat-nama">
+                            <div style="font-size: 11px; color: var(--text-secondary); font-family: 'Inter', sans-serif; letter-spacing: 1px; margin-bottom: 8px;">PASLON NOMOR ${paslon.id}</div>
+                            ${namaHtml}
+                        </div>
+                        <div class="kandidat-visi">"${paslon.visi_misi}"</div>
+                        <button class="btn-pilih" onclick="pilihKandidat(${paslon.id}, '${paslon.nama}', this)">Coblos No. ${paslon.id}</button>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                container.innerHTML = '<p style="color: #ff6b6b;">Terjadi kesalahan saat memuat data kandidat.</p>';
+            }
+        }
+
+        async function pilihKandidat(id, nama, btnElement) {
+            const konfirmasi = await showCustomModal("Apakah Anda yakin ingin mencoblos:\n" + nama + "?\n\nPilihan bersifat final dan tidak dapat diubah!", "confirm");
+            if (konfirmasi) {
+                const semuaTombol = document.querySelectorAll('.btn-pilih');
+                semuaTombol.forEach(btn => btn.disabled = true);
+                btnElement.innerText = "Menyimpan...";
+
+                try {
+                    const response = await fetch('/api/vote', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: sessionStorage.getItem("activeUser"), kandidat_id: id })
+                    });
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        await showCustomModal("Terima kasih! Suara Anda berhasil dicatat dan dienkripsi.", "success");
+                        window.location.href = "/hasil-publik.html";
+                    } else {
+                        await showCustomModal("Gagal: " + result.error, "alert");
+                        semuaTombol.forEach(btn => btn.disabled = false); btnElement.innerText = "Coblos";
+                    }
+                } catch (error) {
+                    await showCustomModal("Terjadi kesalahan sistem saat menyimpan suara.", "alert");
+                    semuaTombol.forEach(btn => btn.disabled = false); btnElement.innerText = "Coblos";
+                }
+            }
+        }
+
+        function logout() { sessionStorage.removeItem("activeUser"); sessionStorage.removeItem("userRole"); window.location.href = "/index.html"; }
+    </script>
+</body>
+
+</html>
