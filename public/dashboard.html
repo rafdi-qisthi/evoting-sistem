@@ -125,7 +125,7 @@
             letter-spacing: 1px;
         }
 
-        .btn-pilih:hover {
+        .btn-pilih:hover:not(:disabled) {
             box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
             transform: translateY(-2px);
         }
@@ -157,7 +157,6 @@
             Anda. Suara Anda bersifat rahasia dan dienkripsi.</p>
     </div>
 
-    <!-- DIBUAT KOSONG KARENA AKAN DIISI OTOMATIS OLEH JAVASCRIPT -->
     <div class="kandidat-container" id="kandidatContainer">
         <p style="color: var(--text-secondary);">Memuat data pasangan calon dari database...</p>
     </div>
@@ -185,6 +184,8 @@
         // FUNGSI BARU: MENGAMBIL DATA DARI DATABASE (API)
         async function loadDataPaslon() {
             const container = document.getElementById('kandidatContainer');
+            const userRole = sessionStorage.getItem("userRole"); // Ambil role user
+
             try {
                 const response = await fetch('/api/paslon');
                 const kandidatData = await response.json();
@@ -210,6 +211,14 @@
                         namaHtml = `${ketua}<br><span style="font-size: 16px; color: var(--text-primary); font-weight: 400; font-family: 'Inter', sans-serif;">&amp; ${wakil}</span>`;
                     }
 
+                    // CEK JIKA ROLE DEMO: Nonaktifkan tombol
+                    let tombolCoblos = '';
+                    if (userRole === 'demo') {
+                        tombolCoblos = `<button class="btn-pilih" disabled title="Akun demo tidak bisa memilih">Mode Demo</button>`;
+                    } else {
+                        tombolCoblos = `<button class="btn-pilih" onclick="pilihKandidat(${paslon.id}, '${paslon.nama}', this)">Coblos No. ${paslon.id}</button>`;
+                    }
+
                     const card = document.createElement('div');
                     card.className = 'kandidat-card';
                     card.innerHTML = `
@@ -221,7 +230,7 @@
                             ${namaHtml}
                         </div>
                         <div class="kandidat-visi">"${paslon.visi_misi}"</div>
-                        <button class="btn-pilih" onclick="pilihKandidat(${paslon.id}, '${paslon.nama}', this)">Coblos No. ${paslon.id}</button>
+                        ${tombolCoblos}
                     `;
                     container.appendChild(card);
                 });
@@ -231,6 +240,13 @@
         }
 
         async function pilihKandidat(id, nama, btnElement) {
+            // PENGAMANAN GANDA: Tolak jika role adalah demo
+            const userRole = sessionStorage.getItem("userRole");
+            if (userRole === 'demo') {
+                await showCustomModal("Akun demo hanya untuk pratinjau dan tidak diizinkan untuk mencoblos.", "alert");
+                return;
+            }
+
             const konfirmasi = await showCustomModal("Apakah Anda yakin ingin mencoblos:\n" + nama + "?\n\nPilihan bersifat final dan tidak dapat diubah!", "confirm");
             if (konfirmasi) {
                 const semuaTombol = document.querySelectorAll('.btn-pilih');
@@ -249,16 +265,22 @@
                         window.location.href = "/hasil-publik.html";
                     } else {
                         await showCustomModal("Gagal: " + result.error, "alert");
-                        semuaTombol.forEach(btn => btn.disabled = false); btnElement.innerText = "Coblos";
+                        semuaTombol.forEach(btn => btn.disabled = false);
+                        btnElement.innerText = `Coblos No. ${id}`;
                     }
                 } catch (error) {
                     await showCustomModal("Terjadi kesalahan sistem saat menyimpan suara.", "alert");
-                    semuaTombol.forEach(btn => btn.disabled = false); btnElement.innerText = "Coblos";
+                    semuaTombol.forEach(btn => btn.disabled = false);
+                    btnElement.innerText = `Coblos No. ${id}`;
                 }
             }
         }
 
-        function logout() { sessionStorage.removeItem("activeUser"); sessionStorage.removeItem("userRole"); window.location.href = "/index.html"; }
+        function logout() {
+            sessionStorage.removeItem("activeUser");
+            sessionStorage.removeItem("userRole");
+            window.location.href = "/index.html";
+        }
     </script>
 </body>
 
