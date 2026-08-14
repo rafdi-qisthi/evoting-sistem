@@ -52,3 +52,17 @@ window.showCustomModal = function(message, type = 'alert') {
         }, 50); 
     });
 };
+
+// Fungsi untuk Buka/Tutup Menu Sidebar di HP
+window.toggleSidebarMenu = function() {
+    const menu = document.getElementById('sidebarMenu');
+    const icon = document.getElementById('toggleIcon');
+    
+    if (menu.classList.contains('show')) {
+        menu.classList.remove('show');
+        icon.innerText = '▼'; // Panah ke bawah (Tutup)
+    } else {
+        menu.classList.add('show');
+        icon.innerText = '▲'; // Panah ke atas (Buka)
+    }
+};

@@ -219,20 +219,29 @@
                 <h2 class="profile-title" id="namaAdmin">Admin</h2>
                 <p class="profile-subtitle" id="subtitleProfil">Hak Akses Penuh</p>
             </div>
-
-            <div
-                style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; margin-left: 5px;">
-                Menu Kendali</div>
-            <button class="menu-btn aktif" onclick="window.location.href='/admin.html'">🏠 Dashboard Utama</button>
-            <button class="menu-btn" onclick="window.location.href='/dpt.html'">👥 Kelola Data Pemilih</button>
-            <button class="menu-btn" onclick="window.location.href='/paslon.html'">👤 Kelola Paslon</button>
-            <button class="menu-btn" onclick="window.location.href='/hasil.html'">📊 Riwayat & Hasil</button>
-
-            <div
-                style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 25px; margin-bottom: 10px; margin-left: 5px;">
-                Pratinjau Publik</div>
-            <button class="menu-btn" onclick="window.location.href='/dashboard.html'">🗳️ Layar Bilik Suara</button>
-            <button class="menu-btn" onclick="window.location.href='/hasil-publik.html'">📈 Layar Live Count</button>
+        
+            <!-- TOMBOL TOGGLE KHUSUS HP -->
+            <button class="menu-toggle-btn" onclick="toggleSidebarMenu()">
+                <span>☰ Tampilkan Menu</span>
+                <span id="toggleIcon">▼</span>
+            </button>
+        
+            <!-- BUNGKUS MENU (Yang akan dilipat/dibuka) -->
+            <div class="sidebar-menu-wrapper" id="sidebarMenu">
+                <div
+                    style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; margin-left: 5px;">
+                    Menu Kendali</div>
+                <button class="menu-btn aktif" onclick="window.location.href='/admin.html'">🏠 Dashboard Utama</button>
+                <button class="menu-btn" onclick="window.location.href='/dpt.html'">👥 Kelola Data Pemilih</button>
+                <button class="menu-btn" onclick="window.location.href='/paslon.html'">👤 Kelola Paslon</button>
+                <button class="menu-btn" onclick="window.location.href='/hasil.html'">📊 Riwayat & Hasil</button>
+        
+                <div
+                    style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 25px; margin-bottom: 10px; margin-left: 5px;">
+                    Pratinjau Publik</div>
+                <button class="menu-btn" onclick="window.location.href='/dashboard.html'">🗳️ Layar Bilik Suara</button>
+                <button class="menu-btn" onclick="window.location.href='/hasil-publik.html'">📈 Layar Live Count</button>
+            </div>
         </aside>
 
         <main class="content-area">
