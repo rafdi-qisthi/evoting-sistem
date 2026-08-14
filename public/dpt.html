@@ -1,14 +1,19 @@
 <!DOCTYPE html>
+
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Voting | Kelola Data Pemilih</title>
+
+    ```
     <link
         href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
+
     <link rel="stylesheet" href="/css/global.css?v=2">
+
     <style>
         .table-btns {
             display: flex;
@@ -146,37 +151,75 @@
             filter: brightness(1.1);
         }
     </style>
+    ```
+
 </head>
 
 <body>
+
+    ```
     <header class="topbar">
-        <div class="topbar-logo"><span>🛡️</span> E-Voting Panel</div>
-        <button class="btn-outline" onclick="logoutAdmin()">🚪 Keluar</button>
+        <div class="topbar-logo">
+            <span>🛡️</span> E-Voting Panel
+        </div>
+
+        <button class="btn-outline" onclick="logoutAdmin()">
+            🚪 Keluar
+        </button>
     </header>
 
     <div class="container">
+
         <div class="page-header">
+
             <div class="header-left">
+
                 <a href="/admin.html"
-                    style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500;">←
-                    Kembali ke Dashboard</a>
-                <h1 style="margin-top: 10px;"><span>👥</span> Kelola Data Pengguna (DPT)</h1>
-                <p>Tambah manual, export, atau import data massal menggunakan Excel (.csv)</p>
+                    style="color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500;">
+                    ← Kembali ke Dashboard
+                </a>
+
+                <h1 style="margin-top: 10px;">
+                    <span>👥</span> Kelola Data Pengguna (DPT)
+                </h1>
+
+                <p>
+                    Tambah manual, export, atau import data massal menggunakan Excel (.csv)
+                </p>
+
             </div>
+
             <div class="action-group">
-                <button class="btn-primary" id="btnTambah" onclick="tambahDPT()">+ Tambah Manual</button>
-                <button class="btn-export" id="btnTemplate" onclick="downloadTemplateDPT()"
-                    title="Unduh Format Kosong">📄 Template</button>
+
+                <button class="btn-primary" id="btnTambah" onclick="tambahDPT()">
+                    + Tambah Manual
+                </button>
+
+                <button class="btn-export" id="btnTemplate" onclick="downloadTemplateDPT()" title="Unduh Format Kosong">
+                    📄 Template
+                </button>
+
                 <button class="btn-export" id="btnImport" onclick="document.getElementById('importDPT').click()"
-                    title="Unggah CSV">📤 Import</button>
+                    title="Unggah CSV">
+                    📤 Import
+                </button>
+
                 <input type="file" id="importDPT" accept=".csv" style="display:none;" onchange="prosesImportDPT(event)">
-                <button class="btn-export" id="btnExport" onclick="exportDPT()" title="Unduh Data">💾 Export</button>
+
+                <button class="btn-export" id="btnExport" onclick="exportDPT()" title="Unduh Data">
+                    💾 Export
+                </button>
+
             </div>
+
         </div>
 
         <div class="table-card">
+
             <div class="table-responsive">
+
                 <table id="tabelDataDPT">
+
                     <thead>
                         <tr>
                             <th style="width: 35%;">Username</th>
@@ -185,164 +228,822 @@
                             <th style="width: 15%;">Aksi</th>
                         </tr>
                     </thead>
+
                     <tbody id="tabelDPT">
+
                         <tr>
-                            <td colspan="4" style="text-align: center;">Memuat data...</td>
+                            <td colspan="4" style="text-align: center;">
+                                Memuat data...
+                            </td>
                         </tr>
+
                     </tbody>
+
                 </table>
+
             </div>
+
         </div>
+
     </div>
 
     <script src="/js/global.js"></script>
+
     <script>
+
         const adminAktif = sessionStorage.getItem("activeUser");
         const role = sessionStorage.getItem("userRole");
-        if (!adminAktif || (role !== 'admin' && role !== 'demo')) { window.location.href = "/"; }
-        function logoutAdmin() { sessionStorage.clear(); window.location.href = "/"; }
+
+        if (!adminAktif || (role !== 'admin' && role !== 'demo')) {
+            window.location.href = "/";
+        }
+
+        function logoutAdmin() {
+            sessionStorage.clear();
+            window.location.href = "/";
+        }
 
         let listDPT = [];
 
         document.addEventListener("DOMContentLoaded", () => {
+
             if (role === 'demo') {
+
                 const buttons = [
-                    { id: 'btnTambah', text: '🔒 Tambah Manual' },
-                    { id: 'btnTemplate', text: '🔒 Template' },
-                    { id: 'btnImport', text: '🔒 Import' },
-                    { id: 'btnExport', text: '🔒 Export' }
+                    {
+                        id: 'btnTambah',
+                        text: '🔒 Tambah Manual'
+                    },
+                    {
+                        id: 'btnTemplate',
+                        text: '🔒 Template'
+                    },
+                    {
+                        id: 'btnImport',
+                        text: '🔒 Import'
+                    },
+                    {
+                        id: 'btnExport',
+                        text: '🔒 Export'
+                    }
                 ];
+
                 buttons.forEach(b => {
+
                     const btn = document.getElementById(b.id);
+
                     if (btn) {
+
                         btn.innerHTML = b.text;
                         btn.disabled = true;
                         btn.style.opacity = '0.5';
                         btn.style.cursor = 'not-allowed';
                         btn.style.pointerEvents = 'none';
                         btn.title = 'Fitur dikunci pada mode Demo';
+
                     }
+
                 });
+
             }
+
             loadDataDPT();
+
         });
 
         function downloadCSV(csv, filename) {
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename;
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+
+            const blob = new Blob(
+                [csv],
+                {
+                    type: 'text/csv;charset=utf-8;'
+                }
+            );
+
+            const link = document.createElement("a");
+
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            document.body.removeChild(link);
+
         }
 
         function downloadTemplateDPT() {
-            let csv = "username,password\n"; csv += "warga01,pass123\n"; csv += "warga02,pass123\n";
+
+            let csv = "username,password\n";
+
+            csv += "warga01,pass123\n";
+            csv += "warga02,pass123\n";
+
             downloadCSV(csv, "Template_Import_DPT.csv");
+
         }
 
         function exportDPT() {
-            if (listDPT.length === 0) return showCustomModal("Belum ada data untuk diexport!", "alert");
+
+            if (listDPT.length === 0) {
+                return showCustomModal(
+                    "Belum ada data untuk diexport!",
+                    "alert"
+                );
+            }
+
             let csv = "Username,Password,Status Voting\n";
+
             listDPT.forEach(p => {
-                let status = p.status_voting === 1 ? "Sudah Vote" : "Belum Vote";
+
+                let status =
+                    p.status_voting === 1
+                        ? "Sudah Vote"
+                        : "Belum Vote";
+
                 csv += `"${p.username}","${p.password}","${status}"\n`;
+
             });
-            downloadCSV(csv, "Data_Export_DPT.csv");
+
+            downloadCSV(
+                csv,
+                "Data_Export_DPT.csv"
+            );
+
         }
 
         function parseCSVLine(line) {
-            let match = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            return match.map(val => val.replace(/(^"|"$)/g, '').trim());
+
+            let match = line.split(
+                /,(?=(?:(?:[^"]*"){2})*[^"]*$)/
+            );
+
+            return match.map(
+                val => val
+                    .replace(/(^"|"$)/g, '')
+                    .trim()
+            );
+
         }
 
         function prosesImportDPT(event) {
+
             const file = event.target.files[0];
+
             if (!file) return;
+
             const reader = new FileReader();
+
             reader.onload = async function (e) {
-                const text = e.target.result; const rows = text.split('\n').filter(row => row.trim().length > 0);
+
+                const text = e.target.result;
+
+                const rows = text
+                    .split('\n')
+                    .filter(
+                        row => row.trim().length > 0
+                    );
+
                 const dataToImport = [];
+
                 for (let i = 1; i < rows.length; i++) {
+
                     const cols = parseCSVLine(rows[i]);
-                    if (cols.length >= 2 && cols[0] !== "" && cols[1] !== "") dataToImport.push({ username: cols[0], password: cols[1] });
+
+                    if (
+                        cols.length >= 2 &&
+                        cols[0] !== "" &&
+                        cols[1] !== ""
+                    ) {
+
+                        dataToImport.push({
+                            username: cols[0],
+                            password: cols[1]
+                        });
+
+                    }
+
                 }
-                if (dataToImport.length === 0) { event.target.value = ''; return showCustomModal("File CSV kosong!", "alert"); }
+
+                if (dataToImport.length === 0) {
+
+                    event.target.value = '';
+
+                    return showCustomModal(
+                        "File CSV kosong!",
+                        "alert"
+                    );
+
+                }
+
                 try {
-                    const response = await fetch('/api/dpt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataToImport) });
-                    if (response.ok) { await showCustomModal(`Berhasil mengimpor ${dataToImport.length} data pemilih!`, "success"); loadDataDPT(); }
-                    else { await showCustomModal("Gagal mengimpor. Pastikan tidak ada duplikasi username.", "alert"); }
-                } catch (err) { await showCustomModal("Terjadi kesalahan koneksi.", "alert"); }
+
+                    const response = await fetch(
+                        '/api/dpt',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(dataToImport)
+                        }
+                    );
+
+                    if (response.ok) {
+
+                        await showCustomModal(
+                            `Berhasil mengimpor ${dataToImport.length} data pemilih!`,
+                            "success"
+                        );
+
+                        loadDataDPT();
+
+                    } else {
+
+                        await showCustomModal(
+                            "Gagal mengimpor. Pastikan tidak ada duplikasi username.",
+                            "alert"
+                        );
+
+                    }
+
+                } catch (err) {
+
+                    await showCustomModal(
+                        "Terjadi kesalahan koneksi.",
+                        "alert"
+                    );
+
+                }
+
                 event.target.value = '';
+
             };
+
             reader.readAsText(file);
+
         }
 
         async function loadDataDPT() {
-            const tbody = document.getElementById('tabelDPT');
-            try { const response = await fetch('/api/dpt'); listDPT = await response.json(); renderTabel(); }
-            catch (error) { tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #ff6b6b;">Gagal terhubung ke server!</td></tr>'; }
+
+            const tbody =
+                document.getElementById('tabelDPT');
+
+            try {
+
+                const response =
+                    await fetch('/api/dpt');
+
+                listDPT =
+                    await response.json();
+
+                renderTabel();
+
+            } catch (error) {
+
+                tbody.innerHTML =
+                    '<tr><td colspan="4" style="text-align: center; color: #ff6b6b;">Gagal terhubung ke server!</td></tr>';
+
+            }
+
         }
 
         function renderTabel() {
-            const tbody = document.getElementById('tabelDPT'); tbody.innerHTML = '';
-            if (listDPT.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Belum ada data pemilih.</td></tr>'; return; }
+
+            const tbody =
+                document.getElementById('tabelDPT');
+
+            tbody.innerHTML = '';
+
+            if (listDPT.length === 0) {
+
+                tbody.innerHTML =
+                    '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Belum ada data pemilih.</td></tr>';
+
+                return;
+
+            }
+
             listDPT.forEach(pemilih => {
-                const statusBadge = pemilih.status_voting === 1 ? '<span class="badge badge-green">Sudah Vote</span>' : '<span class="badge badge-yellow">Belum Vote</span>';
-                const tr = document.createElement('tr'); tr.className = 'normal-row'; tr.id = `row-${pemilih.id}`;
+
+                const statusBadge =
+                    pemilih.status_voting === 1
+                        ? '<span class="badge badge-green">Sudah Vote</span>'
+                        : '<span class="badge badge-yellow">Belum Vote</span>';
+
+                const tr =
+                    document.createElement('tr');
+
+                tr.className = 'normal-row';
+                tr.id = `row-${pemilih.id}`;
 
                 let aksiHTML = '';
+
                 if (role === 'admin') {
-                    aksiHTML = `<div class="table-btns"><button class="btn-sm btn-edit" onclick="bukaFormEdit(${pemilih.id})">✏️ Edit</button><button class="btn-sm btn-delete" onclick="hapusDPT(${pemilih.id}, '${pemilih.username}')">🗑️ Hapus</button></div>`;
+
+                    aksiHTML = `
+                    <div class="table-btns">
+                        <button
+                            class="btn-sm btn-edit"
+                            onclick="bukaFormEdit(${pemilih.id})">
+                            ✏️ Edit
+                        </button>
+
+                        <button
+                            class="btn-sm btn-delete"
+                            onclick="hapusDPT(${pemilih.id}, '${pemilih.username}')">
+                            🗑️ Hapus
+                        </button>
+                    </div>
+                `;
+
                 } else {
-                    aksiHTML = `<span style="font-size: 12px; color: var(--text-muted);">🔒 Dikunci</span>`;
+
+                    aksiHTML = `
+                    <span
+                        style="font-size: 12px; color: var(--text-muted);">
+                        🔒 Dikunci
+                    </span>
+                `;
+
                 }
 
-                tr.innerHTML = `<td><strong>${pemilih.username}</strong></td><td style="color: var(--text-secondary);">${pemilih.password}</td><td>${statusBadge}</td><td>${aksiHTML}</td>`;
+                /*
+                 * SENSOR PASSWORD UNTUK MODE DEMO
+                 *
+                 * Admin:
+                 *     password asli ditampilkan.
+                 *
+                 * Demo:
+                 *     password ditampilkan sebagai ••••••••
+                 */
+
+                const passwordDisplay =
+                    role === 'demo'
+                        ? '••••••••'
+                        : pemilih.password;
+
+                tr.innerHTML = `
+                <td>
+                    <strong>${pemilih.username}</strong>
+                </td>
+
+                <td style="color: var(--text-secondary);">
+                    ${passwordDisplay}
+                </td>
+
+                <td>
+                    ${statusBadge}
+                </td>
+
+                <td>
+                    ${aksiHTML}
+                </td>
+            `;
+
                 tbody.appendChild(tr);
+
             });
+
         }
 
-        function batalEdit() { const formAktif = document.querySelector('.active-edit'); if (formAktif) formAktif.remove(); }
+        function batalEdit() {
+
+            const formAktif =
+                document.querySelector('.active-edit');
+
+            if (formAktif) {
+                formAktif.remove();
+            }
+
+        }
 
         function bukaFormEdit(id) {
-            batalEdit(); const pemilih = listDPT.find(p => p.id === id); const rowAsli = document.getElementById(`row-${id}`);
-            const formRow = document.createElement('tr'); formRow.className = 'edit-row active-edit';
-            formRow.innerHTML = `<td colspan="4"><div class="edit-box"><div class="edit-title">✏️ Mengedit Data: <span style="color:white; margin-left:5px;">${pemilih.username}</span></div><div class="edit-grid"><div class="form-group"><label>Username</label><input type="text" id="edit-username" value="${pemilih.username}" autocomplete="off"></div><div class="form-group"><label>Password</label><input type="text" id="edit-password" value="${pemilih.password}" autocomplete="off"></div><div class="form-group"><label>Status Akun (Voting)</label><select id="edit-status"><option value="0" ${pemilih.status_voting === 0 ? 'selected' : ''}>Belum Vote (Aktifkan)</option><option value="1" ${pemilih.status_voting === 1 ? 'selected' : ''}>Sudah Vote (Kunci)</option></select></div><div class="edit-actions"><button class="btn-batal" onclick="batalEdit()">Batal</button><button class="btn-simpan" onclick="simpanEdit(${id})">Simpan</button></div></div></div></td>`;
-            rowAsli.insertAdjacentElement('afterend', formRow);
+
+            batalEdit();
+
+            const pemilih =
+                listDPT.find(
+                    p => p.id === id
+                );
+
+            const rowAsli =
+                document.getElementById(
+                    `row-${id}`
+                );
+
+            const formRow =
+                document.createElement('tr');
+
+            formRow.className =
+                'edit-row active-edit';
+
+            formRow.innerHTML = `
+
+            <td colspan="4">
+
+                <div class="edit-box">
+
+                    <div class="edit-title">
+                        ✏️ Mengedit Data:
+
+                        <span
+                            style="color:white; margin-left:5px;">
+                            ${pemilih.username}
+                        </span>
+                    </div>
+
+                    <div class="edit-grid">
+
+                        <div class="form-group">
+
+                            <label>
+                                Username
+                            </label>
+
+                            <input
+                                type="text"
+                                id="edit-username"
+                                value="${pemilih.username}"
+                                autocomplete="off">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>
+                                Password
+                            </label>
+
+                            <input
+                                type="text"
+                                id="edit-password"
+                                value="${pemilih.password}"
+                                autocomplete="off">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>
+                                Status Akun (Voting)
+                            </label>
+
+                            <select id="edit-status">
+
+                                <option
+                                    value="0"
+                                    ${pemilih.status_voting === 0 ? 'selected' : ''}>
+                                    Belum Vote (Aktifkan)
+                                </option>
+
+                                <option
+                                    value="1"
+                                    ${pemilih.status_voting === 1 ? 'selected' : ''}>
+                                    Sudah Vote (Kunci)
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="edit-actions">
+
+                            <button
+                                class="btn-batal"
+                                onclick="batalEdit()">
+                                Batal
+                            </button>
+
+                            <button
+                                class="btn-simpan"
+                                onclick="simpanEdit(${id})">
+                                Simpan
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </td>
+
+        `;
+
+            rowAsli.insertAdjacentElement(
+                'afterend',
+                formRow
+            );
+
         }
 
         async function simpanEdit(id) {
-            const usernameBaru = document.getElementById('edit-username').value.trim(); const passwordBaru = document.getElementById('edit-password').value.trim(); const statusBaru = parseInt(document.getElementById('edit-status').value);
-            if (!usernameBaru || !passwordBaru) { await showCustomModal("Data tidak boleh kosong!", "alert"); return; }
+
+            const usernameBaru =
+                document
+                    .getElementById('edit-username')
+                    .value
+                    .trim();
+
+            const passwordBaru =
+                document
+                    .getElementById('edit-password')
+                    .value
+                    .trim();
+
+            const statusBaru =
+                parseInt(
+                    document
+                        .getElementById('edit-status')
+                        .value
+                );
+
+            if (!usernameBaru || !passwordBaru) {
+
+                await showCustomModal(
+                    "Data tidak boleh kosong!",
+                    "alert"
+                );
+
+                return;
+
+            }
+
             try {
-                const response = await fetch('/api/dpt', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, username: usernameBaru, password: passwordBaru, status_voting: statusBaru }) });
-                if (response.ok) { await showCustomModal("Data berhasil diperbarui.", "success"); loadDataDPT(); } else { await showCustomModal("Gagal memperbarui data.", "alert"); }
-            } catch (error) { await showCustomModal("Kesalahan koneksi.", "alert"); }
+
+                const response =
+                    await fetch(
+                        '/api/dpt',
+                        {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                id: id,
+                                username: usernameBaru,
+                                password: passwordBaru,
+                                status_voting: statusBaru
+                            })
+                        }
+                    );
+
+                if (response.ok) {
+
+                    await showCustomModal(
+                        "Data berhasil diperbarui.",
+                        "success"
+                    );
+
+                    loadDataDPT();
+
+                } else {
+
+                    await showCustomModal(
+                        "Gagal memperbarui data.",
+                        "alert"
+                    );
+
+                }
+
+            } catch (error) {
+
+                await showCustomModal(
+                    "Kesalahan koneksi.",
+                    "alert"
+                );
+
+            }
+
         }
 
         function tambahDPT() {
-            batalEdit(); const tbody = document.getElementById('tabelDPT'); const formRow = document.createElement('tr'); formRow.className = 'edit-row active-edit';
-            formRow.innerHTML = `<td colspan="4"><div class="edit-box"><div class="edit-title">✨ Menambah Pengguna Baru</div><div class="edit-grid"><div class="form-group"><label>Username</label><input type="text" id="add-username" placeholder="Masukkan username..." autocomplete="off"></div><div class="form-group"><label>Password</label><input type="text" id="add-password" placeholder="Buat password..." autocomplete="off"></div><div class="form-group"><label>Status</label><select disabled><option>Belum Vote (Default)</option></select></div><div class="edit-actions"><button class="btn-batal" onclick="batalEdit()">Batal</button><button class="btn-simpan" onclick="simpanTambah()">Simpan</button></div></div></div></td>`;
-            tbody.insertBefore(formRow, tbody.firstChild);
+
+            batalEdit();
+
+            const tbody =
+                document.getElementById('tabelDPT');
+
+            const formRow =
+                document.createElement('tr');
+
+            formRow.className =
+                'edit-row active-edit';
+
+            formRow.innerHTML = `
+
+            <td colspan="4">
+
+                <div class="edit-box">
+
+                    <div class="edit-title">
+                        ✨ Menambah Pengguna Baru
+                    </div>
+
+                    <div class="edit-grid">
+
+                        <div class="form-group">
+
+                            <label>
+                                Username
+                            </label>
+
+                            <input
+                                type="text"
+                                id="add-username"
+                                placeholder="Masukkan username..."
+                                autocomplete="off">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>
+                                Password
+                            </label>
+
+                            <input
+                                type="text"
+                                id="add-password"
+                                placeholder="Buat password..."
+                                autocomplete="off">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>
+                                Status
+                            </label>
+
+                            <select disabled>
+
+                                <option>
+                                    Belum Vote (Default)
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="edit-actions">
+
+                            <button
+                                class="btn-batal"
+                                onclick="batalEdit()">
+                                Batal
+                            </button>
+
+                            <button
+                                class="btn-simpan"
+                                onclick="simpanTambah()">
+                                Simpan
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </td>
+
+        `;
+
+            tbody.insertBefore(
+                formRow,
+                tbody.firstChild
+            );
+
         }
 
         async function simpanTambah() {
-            const username = document.getElementById('add-username').value.trim(); const password = document.getElementById('add-password').value.trim();
-            if (!username || !password) { await showCustomModal("Username dan Password wajib diisi!", "alert"); return; }
+
+            const username =
+                document
+                    .getElementById('add-username')
+                    .value
+                    .trim();
+
+            const password =
+                document
+                    .getElementById('add-password')
+                    .value
+                    .trim();
+
+            if (!username || !password) {
+
+                await showCustomModal(
+                    "Username dan Password wajib diisi!",
+                    "alert"
+                );
+
+                return;
+
+            }
+
             try {
-                const response = await fetch('/api/dpt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
-                if (response.ok) { await showCustomModal("Pemilih berhasil ditambahkan.", "success"); loadDataDPT(); } else { await showCustomModal("Gagal menyimpan. Pastikan username belum dipakai.", "alert"); }
-            } catch (error) { await showCustomModal("Kesalahan koneksi.", "alert"); }
+
+                const response =
+                    await fetch(
+                        '/api/dpt',
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                username: username,
+                                password: password
+                            })
+                        }
+                    );
+
+                if (response.ok) {
+
+                    await showCustomModal(
+                        "Pemilih berhasil ditambahkan.",
+                        "success"
+                    );
+
+                    loadDataDPT();
+
+                } else {
+
+                    await showCustomModal(
+                        "Gagal menyimpan. Pastikan username belum dipakai.",
+                        "alert"
+                    );
+
+                }
+
+            } catch (error) {
+
+                await showCustomModal(
+                    "Kesalahan koneksi.",
+                    "alert"
+                );
+
+            }
+
         }
 
         async function hapusDPT(id, nama) {
-            const konfirmasi = await showCustomModal(`Apakah Anda yakin ingin menghapus pemilih:\n${nama}?`, "confirm");
+
+            const konfirmasi =
+                await showCustomModal(
+                    `Apakah Anda yakin ingin menghapus pemilih:\n${nama}?`,
+                    "confirm"
+                );
+
             if (konfirmasi) {
+
                 try {
-                    const response = await fetch(`/api/dpt?id=${id}`, { method: 'DELETE' });
-                    if (response.ok) { await showCustomModal("Data pemilih berhasil dihapus.", "success"); loadDataDPT(); } else { await showCustomModal("Gagal menghapus data.", "alert"); }
-                } catch (error) { await showCustomModal("Kesalahan koneksi ke server.", "alert"); }
+
+                    const response =
+                        await fetch(
+                            `/api/dpt?id=${id}`,
+                            {
+                                method: 'DELETE'
+                            }
+                        );
+
+                    if (response.ok) {
+
+                        await showCustomModal(
+                            "Data pemilih berhasil dihapus.",
+                            "success"
+                        );
+
+                        loadDataDPT();
+
+                    } else {
+
+                        await showCustomModal(
+                            "Gagal menghapus data.",
+                            "alert"
+                        );
+
+                    }
+
+                } catch (error) {
+
+                    await showCustomModal(
+                        "Kesalahan koneksi ke server.",
+                        "alert"
+                    );
+
+                }
+
             }
+
         }
+
     </script>
+    ```
+
 </body>
 
 </html>
