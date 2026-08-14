@@ -277,11 +277,11 @@ async function onRequestPost5(context) {
   try {
     const db = context.env.DB;
     if (!db) {
-      return new Response(JSON.stringify({ error: "Koneksi DB belum terdeteksi oleh sistem" }), { status: 500 });
+      return new Response(JSON.stringify({ error: "Koneksi DB belum terdeteksi" }), { status: 500 });
     }
     const body = await context.request.json();
     try {
-      await db.prepare("UPDATE dpt SET password = ? WHERE username = ?").bind(body.passwordBaru, body.username).run();
+      await db.prepare("UPDATE users SET password = ? WHERE username = ?").bind(body.passwordBaru, body.username).run();
     } catch (dbError) {
       return new Response(JSON.stringify({ error: "Error Database: " + dbError.message }), { status: 500 });
     }
